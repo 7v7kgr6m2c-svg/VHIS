@@ -133,7 +133,34 @@
         .slider-input-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+        }
+
+        .btn-step {
+            width: 32px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            color: var(--primary-color);
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-step:hover {
+            background: var(--accent-blue);
+            border-color: var(--primary-color);
+        }
+
+        .btn-step:active {
+            background: var(--primary-color);
+            color: white;
         }
 
         input[type="range"] {
@@ -146,8 +173,8 @@
         }
 
         input[type="number"] {
-            width: 85px;
-            padding: 8px 10px;
+            width: 75px;
+            padding: 8px 6px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 15px;
@@ -303,7 +330,9 @@
                 <label>現在年齡 (Current Age)</label>
                 <div class="slider-input-container">
                     <input type="range" id="currentAgeSlider" min="0" max="100" value="30" step="1">
+                    <button type="button" class="btn-step" id="currentAgeMinus">−</button>
                     <input type="number" id="currentAgeInput" min="0" max="100" value="30" step="1">
+                    <button type="button" class="btn-step" id="currentAgePlus">+</button>
                 </div>
             </div>
 
@@ -312,7 +341,9 @@
                 <label>目標年齡 (Target Age)</label>
                 <div class="slider-input-container">
                     <input type="range" id="targetAgeSlider" min="0" max="100" value="65" step="1">
+                    <button type="button" class="btn-step" id="targetAgeMinus">−</button>
                     <input type="number" id="targetAgeInput" min="0" max="100" value="65" step="1">
+                    <button type="button" class="btn-step" id="targetAgePlus">+</button>
                 </div>
             </div>
 
@@ -321,7 +352,9 @@
                 <label>預計年度醫療通脹率 (%)</label>
                 <div class="slider-input-container">
                     <input type="range" id="inflationSlider" min="0" max="15" value="5" step="0.5">
+                    <button type="button" class="btn-step" id="inflationMinus">−</button>
                     <input type="number" id="inflationInput" min="0" max="15" value="5" step="0.5">
+                    <button type="button" class="btn-step" id="inflationPlus">+</button>
                 </div>
             </div>
 
@@ -470,12 +503,21 @@ let currentDeductible = '0';
 // DOM 元素
 const planSelector = document.getElementById('planSelector');
 const deductibleSelector = document.getElementById('deductibleSelector');
+
 const currentAgeSlider = document.getElementById('currentAgeSlider');
 const currentAgeInput = document.getElementById('currentAgeInput');
+const currentAgeMinus = document.getElementById('currentAgeMinus');
+const currentAgePlus = document.getElementById('currentAgePlus');
+
 const targetAgeSlider = document.getElementById('targetAgeSlider');
 const targetAgeInput = document.getElementById('targetAgeInput');
+const targetAgeMinus = document.getElementById('targetAgeMinus');
+const targetAgePlus = document.getElementById('targetAgePlus');
+
 const inflationSlider = document.getElementById('inflationSlider');
 const inflationInput = document.getElementById('inflationInput');
+const inflationMinus = document.getElementById('inflationMinus');
+const inflationPlus = document.getElementById('inflationPlus');
 
 // KPI 元素
 const kpiAgeDiff = document.getElementById('kpiAgeDiff');
@@ -502,7 +544,6 @@ function renderDeductibles() {
     deductibleSelector.innerHTML = '';
     const options = deductibleOptions[currentPlan];
     
-    // 檢查當前自付費是否在該計劃中，若不在則設為第一個
     if (!options.some(opt => opt.val === currentDeductible)) {
         currentDeductible = options[0].val;
     }
@@ -522,17 +563,31 @@ function renderDeductibles() {
     });
 }
 
-// 雙向同步 Slider 與 Input
-function syncInputAndSlider(slider, input, callback) {
-    slider.addEventListener('input', (e) => {
-        input.value = e.target.value;
-        if (callback) callback(e.target.value);
-    });
-    input.addEventListener('input', (e) => {
-        let val = parseFloat(e.target.value);
-        if (isNaN(val)) val = 0;
+// 雙向同步 Slider, Input 與 加減按鈕
+function setupControlGroup(slider, input, btnMinus, btnPlus, step, min, max, callback) {
+    function setValue(val) {
+        val = parseFloat(val);
+        if (isNaN(val)) val = min;
+        val = Math.max(min, Math.min(max, val));
+        
+        // 修正浮點數精度問題
+        val = Math.round(val / step) * step;
+        val = parseFloat(val.toFixed(2));
+
         slider.value = val;
+        input.value = val;
         if (callback) callback(val);
+    }
+
+    slider.addEventListener('input', (e) => setValue(e.target.value));
+    input.addEventListener('change', (e) => setValue(e.target.value));
+    
+    btnMinus.addEventListener('click', () => {
+        setValue(parseFloat(input.value) - step);
+    });
+
+    btnPlus.addEventListener('click', () => {
+        setValue(parseFloat(input.value) + step);
     });
 }
 
@@ -549,8 +604,8 @@ function setupEventListeners() {
         });
     });
 
-    // 現在年齡同步
-    syncInputAndSlider(currentAgeSlider, currentAgeInput, (val) => {
+    // 現在年齡控件組
+    setupControlGroup(currentAgeSlider, currentAgeInput, currentAgeMinus, currentAgePlus, 1, 0, 100, (val) => {
         if (parseInt(targetAgeInput.value) <= parseInt(val)) {
             let nextTarget = Math.min(100, parseInt(val) + 1);
             targetAgeInput.value = nextTarget;
@@ -559,8 +614,8 @@ function setupEventListeners() {
         updateCalculation();
     });
 
-    // 目標年齡同步
-    syncInputAndSlider(targetAgeSlider, targetAgeInput, (val) => {
+    // 目標年齡控件組
+    setupControlGroup(targetAgeSlider, targetAgeInput, targetAgeMinus, targetAgePlus, 1, 0, 100, (val) => {
         if (parseInt(val) <= parseInt(currentAgeInput.value)) {
             let nextCurrent = Math.max(0, parseInt(val) - 1);
             currentAgeInput.value = nextCurrent;
@@ -569,8 +624,8 @@ function setupEventListeners() {
         updateCalculation();
     });
 
-    // 醫療通脹率同步
-    syncInputAndSlider(inflationSlider, inflationInput, () => {
+    // 醫療通脹率控件組
+    setupControlGroup(inflationSlider, inflationInput, inflationMinus, inflationPlus, 0.5, 0, 15, () => {
         updateCalculation();
     });
 }
