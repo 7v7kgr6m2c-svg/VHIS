@@ -228,6 +228,7 @@
             font-size: 22px;
             font-weight: 700;
             color: #2d3748;
+            font-variant-numeric: tabular-nums;
         }
 
         .kpi-sub {
@@ -249,12 +250,14 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            text-align: right;
+            table-layout: fixed;
+            font-variant-numeric: tabular-nums; /* 確保數字、逗號及點號垂直精確對齊 */
         }
 
         th, td {
             padding: 12px 16px;
             border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
         }
 
         th {
@@ -266,9 +269,12 @@
             z-index: 10;
         }
 
-        th:first-child, td:first-child {
-            text-align: center;
-        }
+        /* 設定表格欄位對齊與寬度 (第 3 欄通脹調整係數改為 right) */
+        th:nth-child(1), td:nth-child(1) { width: 18%; text-align: center; }
+        th:nth-child(2), td:nth-child(2) { width: 20.5%; text-align: right; }
+        th:nth-child(3), td:nth-child(3) { width: 18%; text-align: right; }
+        th:nth-child(4), td:nth-child(4) { width: 21.75%; text-align: right; }
+        th:nth-child(5), td:nth-child(5) { width: 21.75%; text-align: right; }
 
         tbody tr:nth-child(even) {
             background-color: #f8fafc;
@@ -301,6 +307,50 @@
             .form-grid {
                 grid-template-columns: 1fr;
             }
+
+            /* 1) 把自付費分成四等份 (2x2 Grid Layout) */
+            .deductible-selector {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .deductible-selector .btn-option {
+                min-width: 0;
+                width: 100%;
+            }
+
+            /* 2) 手機介面優化：表頭與數據統一對齊，精簡欄寬以便一次看完 5 項數據 */
+            .card {
+                padding: 12px 8px;
+            }
+
+            table {
+                font-size: 11.5px;
+                table-layout: fixed;
+                width: 100%;
+            }
+
+            th, td {
+                padding: 8px 4px;
+                word-break: break-word;
+                white-space: normal;
+            }
+
+            th {
+                writing-mode: horizontal-tb;
+                text-orientation: initial;
+                vertical-align: middle;
+                height: auto;
+                font-size: 11px;
+                line-height: 1.25;
+            }
+
+            /* 手機版各欄位寬度與對齊優化 (第 3 欄通脹調整係數維持 right) */
+            th:nth-child(1), td:nth-child(1) { width: 17%; text-align: center; }
+            th:nth-child(2), td:nth-child(2) { width: 20%; text-align: right; }
+            th:nth-child(3), td:nth-child(3) { width: 18%; text-align: right; }
+            th:nth-child(4), td:nth-child(4) { width: 22.5%; text-align: right; }
+            th:nth-child(5), td:nth-child(5) { width: 22.5%; text-align: right; }
         }
     </style>
 </head>
@@ -378,13 +428,13 @@
         </div>
         <div class="kpi-card green">
             <div class="kpi-title">平均每月保費 (含通脹)</div>
-            <div class="kpi-value" id="kpiAvgMonthly">$ 0</div>
+            <div class="kpi-value" id="kpiAvgMonthly">0</div>
             <div class="kpi-sub">基於選定年期內總保費平均算得</div>
         </div>
         <div class="kpi-card orange">
             <div class="kpi-title">保費總和 (含通脹)</div>
-            <div class="kpi-value" id="kpiTotalPremium">$ 0</div>
-            <div class="kpi-sub" id="kpiBaseTotal">基本保費總和 (不含通脹): $ 0</div>
+            <div class="kpi-value" id="kpiTotalPremium">0</div>
+            <div class="kpi-sub" id="kpiBaseTotal">基本保費總和 (不含通脹): 0</div>
         </div>
     </div>
 
@@ -459,7 +509,7 @@ const vhisData = {
       "0": 12099.0, "1": 12099.0, "2": 12099.0, "3": 12099.0, "4": 12099.0, "5": 12099.0, "6": 12099.0, "7": 12099.0, "8": 12099.0, "9": 12099.0, "10": 12099.0, "11": 12099.0, "12": 12099.0, "13": 12099.0, "14": 12099.0, "15": 12099.0, "16": 12347.0, "17": 12602.0, "18": 12863.0, "19": 13129.0, "20": 13398.0, "21": 13677.0, "22": 13957.0, "23": 14247.0, "24": 14542.0, "25": 14842.0, "26": 15146.0, "27": 15459.0, "28": 15780.0, "29": 16105.0, "30": 16437.0, "31": 16776.0, "32": 17124.0, "33": 17477.0, "34": 17836.0, "35": 18207.0, "36": 18361.0, "37": 18475.0, "38": 18631.0, "39": 19479.0, "40": 20328.0, "41": 21177.0, "42": 22026.0, "43": 22875.0, "44": 23804.0, "45": 24729.0, "46": 25693.0, "47": 26618.0, "48": 27546.0, "49": 28742.0, "50": 29940.0, "51": 31794.0, "52": 33765.0, "53": 35857.0, "54": 38080.0, "55": 40442.0, "56": 42948.0, "57": 45610.0, "58": 48437.0, "59": 51438.0, "60": 54626.0, "61": 58014.0, "62": 61609.0, "63": 65428.0, "64": 69481.0, "65": 73790.0, "66": 78365.0, "67": 81886.0, "68": 85405.0, "69": 88924.0, "70": 93080.0, "71": 97778.0, "72": 102712.0, "73": 107896.0, "74": 113339.0, "75": 119056.0, "76": 127549.0, "77": 132391.0, "78": 137229.0, "79": 142071.0, "80": 145629.0, "81": 150843.0, "82": 154070.0, "83": 157933.0, "84": 161855.0, "85": 165842.0, "86": 170746.0, "87": 175783.0, "88": 180946.0, "89": 186244.0, "90": 191675.0, "91": 197240.0, "92": 202950.0, "93": 208796.0, "94": 214785.0, "95": 220922.0, "96": 227205.0, "97": 233636.0, "98": 240220.0, "99": 246956.0, "100": 248191.0, "101": 249432.0, "102": 250679.0, "103": 251934.0, "104": 253192.0, "105": 254458.0, "106": 255731.0, "107": 257010.0, "108": 258295.0, "109": 259586.0, "110": 260884.0, "111": 262188.0, "112": 263499.0, "113": 264817.0, "114": 266141.0, "115": 267471.0, "116": 268810.0, "117": 270154.0, "118": 271504.0, "119": 272862.0, "120": 274226.0, "121": 274226.0
     },
     "8000": {
-      "0": 8171.0, "1": 8171.0, "2": 8171.0, "3": 8171.0, "4": 8171.0, "5": 8171.0, "6": 8171.0, "7": 8171.0, "8": 8171.0, "9": 8171.0, "10": 8171.0, "11": 8171.0, "12": 8171.0, "13": 8171.0, "14": 8171.0, "15": 8171.0, "16": 8352.0, "17": 8540.0, "18": 8730.0, "19": 8923.0, "20": 9127.0, "21": 9329.0, "22": 9533.0, "23": 9746.0, "24": 9967.0, "25": 10186.0, "26": 10413.0, "27": 10645.0, "28": 10883.0, "29": 11123.0, "30": 11370.0, "31": 11627.0, "32": 11886.0, "33": 12149.0, "34": 12422.0, "35": 12699.0, "36": 12853.0, "37": 12968.0, "38": 13122.0, "39": 13491.0, "40": 14032.0, "41": 14601.0, "42": 15139.0, "43": 15694.0, "44": 16333.0, "45": 17054.0, "46": 17892.0, "47": 18635.0, "48": 19373.0, "49": 20112.0, "50": 20867.0, "51": 21639.0, "52": 22498.0, "53": 23650.0, "54": 25027.0, "55": 26489.0, "56": 28052.0, "57": 29714.0, "58": 31483.0, "59": 33311.0, "60": 35705.0, "61": 38745.0, "62": 41540.0, "63": 45062.0, "64": 48186.0, "65": 51128.0, "66": 54259.0, "67": 56657.0, "68": 59056.0, "69": 61466.0, "70": 64314.0, "71": 67535.0, "72": 70920.0, "73": 74475.0, "74": 78206.0, "75": 82126.0, "76": 86628.0, "77": 89892.0, "78": 93150.0, "79": 97393.0, "80": 100310.0, "81": 103874.0, "82": 106069.0, "83": 108695.0, "84": 111366.0, "85": 114073.0, "86": 117419.0, "87": 120849.0, "88": 124369.0, "89": 127946.0, "90": 130201.0, "91": 132469.0, "92": 134749.0, "93": 137038.0, "94": 139337.0, "95": 141639.0, "96": 143947.0, "97": 146394.0, "98": 148882.0, "99": 151413.0, "100": 152171.0, "101": 152929.0, "102": 153695.0, "103": 154462.0, "104": 155236.0, "105": 156013.0, "106": 156792.0, "107": 157576.0, "108": 158365.0, "109": 159156.0, "110": 159952.0, "111": 160753.0, "112": 161554.0, "113": 162363.0, "114": 163175.0, "115": 163991.0, "116": 164811.0, "117": 165635.0, "118": 166462.0, "119": 167296.0, "120": 168132.0, "121": 168132.0
+      "0": 8171.0, "1": 8171.0, "2": 8171.0, "3": 8171.0, "4": 8171.0, "5": 8171.0, "6": 8171.0, "7": 8171.0, "8": 8171.0, "9": 8171.0, "10": 8171.0, "11": 8171.0, "12": 8171.0, "13": 8171.0, "14": 8171.0, "15": 8171.0, "16": 8352.0, "17": 8540.0, "18": 8730.0, "19": 8923.0, "20": 9127.0, "21": 9329.0, "22": 9533.0, "23": 9746.0, "24": 9967.0, "25": 10186.0, "26": 10413.0, "27": 10645.0, "28": 10883.0, "29": 11123.0, "30": 11370.0, "31": 11627.0, "32": 11886.0, "33": 12149.0, "34": 12422.0, "35": 12699.0, "36": 12853.0, "37": 12968.0, "38": 13122.0, "39": 13491.0, "40": 14032.0, "41": 14601.0, "42": 15139.0, "43": 15694.0, "44": 16333.0, "45": 17054.0, "46": 17892.0, "47": 18635.0, "48": 19373.0, "49": 20112.0, "50": 20867.0, "51": 21639.0, "52": 22498.0, "53": 23650.0, "54": 25027.0, "55": 26489.0, "56": 28052.0, "57": 29714.0, "58": 31483.0, "59": 33311.0, "60": 35705.0, "61": 38745.0, "62": 41540.0, "63": 45062.0, "64": 48186.0, "65": 51128.0, "66": 54258.0, "67": 56657.0, "68": 59056.0, "69": 61466.0, "70": 64314.0, "71": 67535.0, "72": 70920.5, "73": 74475.0, "74": 78206.0, "75": 82126.0, "76": 86628.0, "77": 89892.0, "78": 93150.0, "79": 97393.0, "80": 100310.0, "81": 103874.0, "82": 106069.0, "83": 108695.0, "84": 111366.0, "85": 114073.0, "86": 117419.0, "87": 120849.0, "88": 124369.0, "89": 127946.0, "90": 130201.0, "91": 132469.0, "92": 134749.0, "93": 137038.0, "94": 139337.0, "95": 141639.0, "96": 143947.0, "97": 146394.0, "98": 148882.0, "99": 151413.0, "100": 152171.0, "101": 152929.0, "102": 153695.0, "103": 154462.0, "104": 155236.0, "105": 156013.0, "106": 156792.0, "107": 157576.0, "108": 158365.0, "109": 159156.0, "110": 159952.0, "111": 160753.0, "112": 161554.0, "113": 162363.0, "114": 163175.0, "115": 163991.0, "116": 164811.0, "117": 165635.0, "118": 166462.0, "119": 167296.0, "120": 168132.0, "121": 168132.0
     },
     "22800": {
       "0": 4724.0, "1": 4724.0, "2": 4724.0, "3": 4724.0, "4": 4724.0, "5": 4724.0, "6": 4724.0, "7": 4724.0, "8": 4724.0, "9": 4724.0, "10": 4724.0, "11": 4724.0, "12": 4724.0, "13": 4724.0, "14": 4724.0, "15": 4724.0, "16": 4828.0, "17": 4936.0, "18": 5046.0, "19": 5157.0, "20": 5274.0, "21": 5390.0, "22": 5510.0, "23": 5633.0, "24": 5760.0, "25": 5887.0, "26": 6017.0, "27": 6152.0, "28": 6289.0, "29": 6429.0, "30": 6569.0, "31": 6720.0, "32": 6870.0, "33": 7021.0, "34": 7180.0, "35": 7338.0, "36": 7493.0, "37": 7607.0, "38": 7761.0, "39": 7946.0, "40": 8128.0, "41": 8438.0, "42": 8749.0, "43": 9072.0, "44": 9440.0, "45": 9856.0, "46": 10342.0, "47": 10770.0, "48": 11196.0, "49": 11625.0, "50": 12060.0, "51": 12506.0, "52": 13001.0, "53": 13668.0, "54": 14465.0, "55": 15309.0, "56": 16213.0, "57": 17173.0, "58": 18195.0, "59": 19252.0, "60": 20636.0, "61": 22393.0, "62": 24008.0, "63": 26045.0, "64": 28233.0, "65": 30601.0, "66": 32795.0, "67": 34960.0, "68": 36801.0, "69": 38276.0, "70": 40024.0, "71": 42005.0, "72": 44089.0, "73": 46274.0, "74": 48569.0, "75": 50975.0, "76": 53407.0, "77": 55393.0, "78": 57378.0, "79": 60002.0, "80": 61722.0, "81": 63688.0, "82": 64805.0, "83": 66178.0, "84": 67565.0, "85": 68822.0, "86": 70088.0, "87": 71366.0, "88": 72650.0, "89": 73946.0, "90": 75250.0, "91": 76560.0, "92": 77878.0, "93": 79201.0, "94": 80530.0, "95": 81860.0, "96": 83193.0, "97": 84607.0, "98": 86048.0, "99": 87510.0, "100": 87947.0, "101": 88388.0, "102": 88828.0, "103": 89273.0, "104": 89720.0, "105": 90168.0, "106": 90618.0, "107": 91073.0, "108": 91526.0, "109": 91985.0, "110": 92444.0, "111": 92906.0, "112": 93372.0, "113": 93837.0, "114": 94307.0, "115": 94779.0, "116": 95253.0, "117": 95729.0, "118": 96208.0, "119": 96688.0, "120": 97172.0, "121": 97172.0
@@ -493,24 +543,24 @@ const vhisData = {
 // 自付費選項定義
 const deductibleOptions = {
     smart: [
-        { label: '$0', val: '0' },
-        { label: '$22,800', val: '22800' },
-        { label: '$45,000', val: '45000' },
-        { label: '$100,000', val: '100000' }
+        { label: '0', val: '0' },
+        { label: '22,800', val: '22800' },
+        { label: '45,000', val: '45000' },
+        { label: '100,000', val: '100000' }
     ],
     advance: [
-        { label: '$0', val: '0' },
-        { label: '$8,000', val: '8000' },
-        { label: '$22,800', val: '22800' },
-        { label: '$45,000', val: '45000' },
-        { label: '$100,000', val: '100000' }
+        { label: '0', val: '0' },
+        { label: '8,000', val: '8000' },
+        { label: '22,800', val: '22800' },
+        { label: '45,000', val: '45000' },
+        { label: '100,000', val: '100000' }
     ],
     deluxe: [
-        { label: '$0', val: '0' },
-        { label: '$8,000', val: '8000' },
-        { label: '$22,800', val: '22800' },
-        { label: '$45,000', val: '45000' },
-        { label: '$100,000', val: '100000' }
+        { label: '0', val: '0' },
+        { label: '8,000', val: '8000' },
+        { label: '22,800', val: '22800' },
+        { label: '45,000', val: '45000' },
+        { label: '100,000', val: '100000' }
     ]
 };
 
@@ -622,114 +672,95 @@ function setupEventListeners() {
         });
     });
 
-    // 現在年齡控件組
-    setupControlGroup(currentAgeSlider, currentAgeInput, currentAgeMinus, currentAgePlus, 1, 0, 100, (val) => {
-        if (parseInt(targetAgeInput.value) <= parseInt(val)) {
-            let nextTarget = Math.min(100, parseInt(val) + 1);
-            targetAgeInput.value = nextTarget;
-            targetAgeSlider.value = nextTarget;
-        }
-        updateCalculation();
-    });
-
-    // 目標年齡控件組
-    setupControlGroup(targetAgeSlider, targetAgeInput, targetAgeMinus, targetAgePlus, 1, 0, 100, (val) => {
-        if (parseInt(val) <= parseInt(currentAgeInput.value)) {
-            let nextCurrent = Math.max(0, parseInt(val) - 1);
-            currentAgeInput.value = nextCurrent;
-            currentAgeSlider.value = nextCurrent;
-        }
-        updateCalculation();
-    });
-
-    // 醫療通脹率控件組
-    setupControlGroup(inflationSlider, inflationInput, inflationMinus, inflationPlus, 0.5, 0, 15, () => {
-        updateCalculation();
-    });
+    // 年齡及通脹控制器
+    setupControlGroup(currentAgeSlider, currentAgeInput, currentAgeMinus, currentAgePlus, 1, 0, 100, () => updateCalculation());
+    setupControlGroup(targetAgeSlider, targetAgeInput, targetAgeMinus, targetAgePlus, 1, 0, 100, () => updateCalculation());
+    setupControlGroup(inflationSlider, inflationInput, inflationMinus, inflationPlus, 0.5, 0, 15, () => updateCalculation());
 }
 
-// 格式化數字為貨幣
-function formatCurrency(val) {
-    return '$ ' + Math.round(val).toLocaleString('en-US');
-}
-
-// 主計算邏輯
+// 核心計算與畫面更新
 function updateCalculation() {
-    const curAge = parseInt(currentAgeInput.value);
-    const tarAge = parseInt(targetAgeInput.value);
-    const inflationRate = parseFloat(inflationInput.value) / 100;
+    let currentAge = parseInt(currentAgeInput.value) || 0;
+    let targetAge = parseInt(targetAgeInput.value) || 0;
+    let inflationRate = parseFloat(inflationInput.value) || 0;
 
-    const yearsCount = tarAge - curAge;
-    
-    // KPI 1: 年齡相差
-    kpiAgeDiff.textContent = `${yearsCount} 年`;
-    kpiAgeRange.textContent = `由 ${curAge} 歲至 ${tarAge} 歲`;
-
-    // 取得指定數據表
-    const planTable = vhisData[currentPlan][currentDeductible];
-
-    let rowsData = [];
-    let cumulativeAdjusted = 0;
-    let baseTotalSum = 0;
-
-    for (let i = 0; i < yearsCount; i++) {
-        let age = curAge + i;
-        let basePremium = planTable[age.toString()] || 0;
-        
-        let inflFactor = Math.pow(1 + inflationRate, i);
-        let adjustedPremium = basePremium * inflFactor;
-        
-        cumulativeAdjusted += adjustedPremium;
-        baseTotalSum += basePremium;
-
-        rowsData.push({
-            age: age,
-            basePremium: basePremium,
-            inflFactor: inflFactor.toFixed(4),
-            adjustedPremium: Math.round(adjustedPremium),
-            cumulativeAdjusted: Math.round(cumulativeAdjusted)
-        });
+    // 確保目標年齡不小於現在年齡
+    if (targetAge < currentAge) {
+        targetAge = currentAge;
+        targetAgeSlider.value = targetAge;
+        targetAgeInput.value = targetAge;
     }
 
-    // KPI 2: 保費總和 (含通脹)
-    kpiTotalPremium.textContent = formatCurrency(cumulativeAdjusted);
-    kpiBaseTotal.textContent = `基本保費總和 (不含通脹): ${formatCurrency(baseTotalSum)}`;
+    const ageDiff = targetAge - currentAge;
+    kpiAgeDiff.textContent = `${ageDiff} 年`;
+    kpiAgeRange.textContent = `由 ${currentAge} 歲至 ${targetAge} 歲`;
 
-    // KPI 3: 平均每月保費 (含通脹)
-    let avgMonthly = yearsCount > 0 ? cumulativeAdjusted / (yearsCount * 12) : 0;
-    kpiAvgMonthly.textContent = formatCurrency(avgMonthly);
+    const planObj = vhisData[currentPlan];
+    const deductibleObj = planObj[currentDeductible] || planObj["0"];
 
-    // 渲染表格
-    renderTable(rowsData);
+    let totalBasePremium = 0;
+    let totalAdjustedPremium = 0;
+    
+    let tableRowsHTML = '';
+    let chartLabels = [];
+    let chartBaseData = [];
+    let chartAdjustedData = [];
 
-    // 渲染圖表
-    renderChart(rowsData);
-}
+    for (let age = currentAge; age <= targetAge; age++) {
+        // 取得基本保費，若超過對應年齡則取最大可用年齡
+        let baseFee = deductibleObj[age];
+        if (baseFee === undefined) {
+            const maxKey = Math.max(...Object.keys(deductibleObj).map(Number));
+            baseFee = deductibleObj[maxKey] || 0;
+        }
 
-// 渲染表格
-function renderTable(data) {
-    detailTableBody.innerHTML = '';
-    data.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.age} 歲</td>
-            <td>${item.basePremium.toLocaleString()}</td>
-            <td>${item.inflFactor}</td>
-            <td>${item.adjustedPremium.toLocaleString()}</td>
-            <td>${item.cumulativeAdjusted.toLocaleString()}</td>
+        const yearsElapsed = age - currentAge;
+        const inflationFactor = Math.pow(1 + inflationRate / 100, yearsElapsed);
+        const adjustedFee = baseFee * inflationFactor;
+
+        totalBasePremium += baseFee;
+        totalAdjustedPremium += adjustedFee;
+
+        totalBasePremium = Math.round(totalBasePremium * 100) / 100;
+        totalAdjustedPremium = Math.round(totalAdjustedPremium * 100) / 100;
+
+        chartLabels.push(`${age}歲`);
+        chartBaseData.push(baseFee);
+        chartAdjustedData.push(Math.round(adjustedFee));
+
+        // 四捨五入至個位數
+        const roundedBaseFee = Math.round(baseFee);
+        const roundedAdjustedFee = Math.round(adjustedFee);
+        const roundedTotalAdjusted = Math.round(totalAdjustedPremium);
+
+        tableRowsHTML += `
+            <tr>
+                <td>${age} 歲</td>
+                <td>${roundedBaseFee.toLocaleString('en-US')}</td>
+                <td>${inflationFactor.toFixed(4)}</td>
+                <td>${roundedAdjustedFee.toLocaleString('en-US')}</td>
+                <td>${roundedTotalAdjusted.toLocaleString('en-US')}</td>
+            </tr>
         `;
-        detailTableBody.appendChild(tr);
-    });
+    }
+
+    detailTableBody.innerHTML = tableRowsHTML;
+
+    // 計算平均每月保費
+    const totalMonths = (ageDiff + 1) * 12;
+    const avgMonthly = totalMonths > 0 ? totalAdjustedPremium / totalMonths : 0;
+
+    kpiAvgMonthly.textContent = `${Math.round(avgMonthly).toLocaleString('en-US')}`;
+    kpiTotalPremium.textContent = `${Math.round(totalAdjustedPremium).toLocaleString('en-US')}`;
+    kpiBaseTotal.textContent = `基本保費總和 (不含通脹): ${Math.round(totalBasePremium).toLocaleString('en-US')}`;
+
+    updateChart(chartLabels, chartBaseData, chartAdjustedData);
 }
 
-// 渲染 Chart.js 圖表
-function renderChart(data) {
+// 更新 Chart.js 圖表
+function updateChart(labels, baseData, adjustedData) {
     const ctx = document.getElementById('premiumChart').getContext('2d');
     
-    const labels = data.map(d => `${d.age}歲`);
-    const adjustedData = data.map(d => d.adjustedPremium);
-    const baseData = data.map(d => d.basePremium);
-
     if (chartInstance) {
         chartInstance.destroy();
     }
@@ -742,23 +773,21 @@ function renderChart(data) {
                 {
                     label: '調整後年度保費 (含通脹)',
                     data: adjustedData,
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    borderWidth: 3,
+                    borderColor: '#0056b3',
+                    backgroundColor: 'rgba(0, 86, 179, 0.1)',
+                    borderWidth: 2.5,
                     fill: true,
-                    tension: 0.3,
-                    pointRadius: 2
+                    tension: 0.1
                 },
                 {
                     label: '基本年度保費 (不含通脹)',
                     data: baseData,
-                    borderColor: '#0056b3',
-                    borderDash: [5, 5],
+                    borderColor: '#28a745',
                     backgroundColor: 'transparent',
                     borderWidth: 2,
+                    borderDash: [5, 5],
                     fill: false,
-                    tension: 0.3,
-                    pointRadius: 0
+                    tension: 0.1
                 }
             ]
         },
@@ -768,14 +797,41 @@ function renderChart(data) {
             plugins: {
                 legend: {
                     position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toLocaleString('en-US');
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString('en-US');
+                        }
+                    }
                 }
             }
         }
     });
 }
 
-// 啟動
-window.onload = init;
+// 網頁載入後初始化
+window.addEventListener('DOMContentLoaded', init);
 </script>
+
 </body>
 </html>
