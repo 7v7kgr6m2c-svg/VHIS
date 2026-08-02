@@ -2,7 +2,8 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 1. 在 viewport meta 中加入 user-scalable=no, maximum-scale=1.0, minimum-scale=1.0 限制縮放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>醫療融資分析計算器</title>
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,6 +18,11 @@
             --border-color: #e2e8f0;
             --accent-blue: #ebf8ff;
             --accent-green: #f0fff4;
+        }
+
+        /* 2. 禁止 iOS touch 雙擊點擊效果 (視需要可加入 touch-action) */
+        html, body {
+            touch-action: manipulation;
         }
 
         * {
@@ -422,6 +428,16 @@
 </div>
 
 <script>
+// 3. JavaScript 攔截雙擊事件以完全禁止 Double-tap Zoom
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function (event) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        event.preventDefault(); // 攔截 300ms 內的第二次點擊
+    }
+    lastTouchEnd = now;
+}, false);
+
 // 數據庫
 const vhisData = {
   "smart": {
@@ -752,35 +768,14 @@ function renderChart(data) {
             plugins: {
                 legend: {
                     position: 'top',
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: $${context.raw.toLocaleString()}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    }
-                },
-                y: {
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toLocaleString();
-                        }
-                    }
                 }
             }
         }
     });
 }
 
-// 啟動應用
-window.addEventListener('DOMContentLoaded', init);
+// 啟動
+window.onload = init;
 </script>
 </body>
 </html>
