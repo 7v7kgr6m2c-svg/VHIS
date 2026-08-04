@@ -395,13 +395,13 @@
         </div>
         <div class="kpi-card green">
             <div class="kpi-title">平均每月保費 (含通脹)</div>
-            <div class="kpi-value" id="kpiAvgMonthly">HKD $0</div>
+            <div class="kpi-value" id="kpiAvgMonthly">HK$0</div>
             <div class="kpi-sub">基於選定年期內總保費平均算得</div>
         </div>
         <div class="kpi-card orange">
             <div class="kpi-title">保費總和 (含通脹)</div>
-            <div class="kpi-value" id="kpiTotalPremium">HKD $0</div>
-            <div class="kpi-sub" id="kpiBaseTotal">基本保費總和 (不含通脹): HKD $0</div>
+            <div class="kpi-value" id="kpiTotalPremium">HK$0</div>
+            <div class="kpi-sub" id="kpiBaseTotal">基本保費總和 (不含通脹): HK$0</div>
         </div>
     </div>
 
@@ -707,9 +707,9 @@ function updateCalculation() {
     const totalMonths = (ageDiff + 1) * 12;
     const avgMonthly = totalMonths > 0 ? totalAdjustedPremium / totalMonths : 0;
 
-    kpiAvgMonthly.textContent = `HKD $${Math.round(avgMonthly).toLocaleString('en-US')}`;
-    kpiTotalPremium.textContent = `HKD $${Math.round(totalAdjustedPremium).toLocaleString('en-US')}`;
-    kpiBaseTotal.textContent = `基本保費總和 (不含通脹): HKD $${Math.round(totalBasePremium).toLocaleString('en-US')}`;
+    kpiAvgMonthly.textContent = `HK$${Math.round(avgMonthly).toLocaleString('en-US')}`;
+    kpiTotalPremium.textContent = `HK$${Math.round(totalAdjustedPremium).toLocaleString('en-US')}`;
+    kpiBaseTotal.textContent = `基本保費總和 (不含通脹): HK$${Math.round(totalBasePremium).toLocaleString('en-US')}`;
 
     updateChart(chartLabels, chartBaseData, chartAdjustedData);
 }
